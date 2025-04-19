@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+ <html xmlns:th="https://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">    
+     <head>
+         <div th:replace="~{fragment :: meta}"></div>   
+              
+         <div th:replace="~{fragment :: styles}"></div>
+           
+         <title>有料プラン解約</title>   
+     </head>
+     <body>
+         <div class="nagoyameshi-wrapper">
+             <!-- ヘッダー -->
+             <div th:replace="~{fragment :: header}"></div>
+             
+             <main>
+                 <div class="container pb-5 nagoyameshi-container">
+                     <div class="row justify-content-center">
+                         <div class="col-xxl-9 col-xl-10 col-lg-11">
+                             <nav class="my-3" style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+                                 <ol class="breadcrumb mb-0"> 
+                                     <li class="breadcrumb-item"><a th:href="@{/}">ホーム</a></li>                       
+                                     <li class="breadcrumb-item"><a th:href="@{/user}">会員情報</a></li>
+                                     <li class="breadcrumb-item active" aria-current="page">解約</li>
+                                 </ol>
+                             </nav> 
+                             
+                             <h1 class="pt-4 mb-4 text-center">有料プランの解約</h1> 
+							  
+							 <div class="upgrade-box d-flex flex-column align-items-center">
+							 	<p>有料プランを解約すると...</p>
+								<ul>
+									<li>お店の画面から予約ができなくなります</li>
+									<li>お気に入りに登録したお店が削除されます</li>
+									<li>レビューの投稿ができなくなります</li>
+								</ul>                                            
+								  
+								<div class="d-flex justify-content-center mt-4">
+								       <button id="cancelButton" class="btn text-white shadow-sm w-100 nagoyameshi-btn">解約する</button>
+								</div>
+						 	</div>
+						</div>                                                                                                 
+                     </div>
+                  </div>
+                 
+             </main>
+             
+             <!-- フッター -->
+             <div th:replace="~{fragment :: footer}"></div>
+         </div>    
+         
+         <div th:replace="~{fragment :: scripts}"></div>  
+		 
+		 <script src="https://js.stripe.com/v3"></script>
+		 <script th:inline="javascript">
+		 	const stripeCustomerId = /*[[${stripeCustomerId}]]*/ "stripeCustomerId";
+		 	console.log('stripeCustomerId:', stripeCustomerId);
+		  </script>
+		  <script src="/js/stripeDownGrade.js"></script>
+		
+   </body>
+ </html>
