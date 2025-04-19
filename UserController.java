@@ -157,23 +157,38 @@ public class UserController {
     }
 
     @PostMapping("/cancel")
-    public ResponseEntity<String> cancelSubscription(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
-        try {
-            String customerId = userDetailsImpl.getUser().getStripeCustomerId();
-            if (customerId == null || customerId.isEmpty()) {
-                return ResponseEntity.badRequest().body("Customer ID is missing");
-            }
+    public String cancelSubscription(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl, RedirectAttributes redirectAttributes) {
+        User user = userDetailsImpl.getUser();
+        System.out.println("Starting subscription cancellation for user: {}");
 
-            boolean isCancelled = stripeService.cancelSubscription(customerId);
-            if (isCancelled) {
-                userService.downgrade(userDetailsImpl.getUser().getId());
-                return ResponseEntity.ok("サブスクリプションが解約されました");
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("サブスクリプション解約に失敗しました");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("システムエラーが発生しました");
+        try {        	
+            List<Subscription> subscriptions = stripeService.getSubscriptions(user.getStripeCustomerId());
+            System.out.println(subscriptions.size());
+
+            stripeService.cancelSubscriptions(subscriptions);
+            System.out.println("Subscriptions cancelled");
+
+            String defaultPaymentMethodId = stripeService.getDefaultPaymentMethodId(user.getStripeCustomerId());
+            System.out.println("Default payment method ID: {}");
+
+            stripeService.detachPaymentMethodFromCustomer(defaultPaymentMethodId);
+            System.out.println("Payment method detached");
+
+            // Update the user's membership status in the database
+            user.setRole(roleRepository.findByName("ROLE_FREE"));
+            userRepository.save(user);
+            System.out.println("User role updated to ROLE_FREE");
+
+        } catch (StripeException e) {
+        	e.printStackTrace(); // スタックトレース情報の出力
+        	
+        	System.out.println("Stripe API error during cancellation: ");
+            redirectAttributes.addFlashAttribute("errorMessage", "有料プランの解約に失敗しました。再度お試しください。");
+            return "redirect:/error-page";  // Change to appropriate error page or message handling
         }
+
+        redirectAttributes.addFlashAttribute("successMessage", "有料プランの解約が完了しました。");
+        return "redirect:/profile";  // Redirect to user's profile or appropriate page
     }
 
     
